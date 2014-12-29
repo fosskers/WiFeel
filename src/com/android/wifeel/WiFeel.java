@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.wifi.WifiManager;
+import android.net.wifi.WifiManager.WifiLock;
 import android.net.wifi.ScanResult;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
@@ -32,43 +33,45 @@ public class WiFeel extends Activity
     private static Strength threshold = Strength.WEAK;
     private static boolean service_on = false;
     private static List<ScanResult> wifiFields = null;
+    private static WifiManager wm;
+    private static WifiLock wl;
 
-    /** Called when the activity is first created. */
+    /* Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState)
     {
+        wm = (WifiManager)getSystemService(WIFI_SERVICE);
+        wl = wm.createWifiLock("WiFeelLock");
         IntentFilter i = new IntentFilter();
         i.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
         registerReceiver(new BroadcastReceiver() {
-                public void onReceive(Context c, Intent i) {
-                    if(service_on) {
-                        // Code to execute when the event occurs!
-                        WifiManager wm = (WifiManager)c
-                            .getSystemService(Context.WIFI_SERVICE);
-                        List<ScanResult> rs = wm.getScanResults();  // <List>!
-                        LinearLayout ll = (LinearLayout)findViewById(R.id.ssids);
+            public void onReceive(Context c, Intent i) {
+                if(service_on) {
+                    // Code to execute when the event occurs.
+                    List<ScanResult> rs = wm.getScanResults();
+                    LinearLayout ll = (LinearLayout)findViewById(R.id.ssids);
 
-                        ll.removeAllViews();
+                    ll.removeAllViews();
 
-                        for(ScanResult sr : rs) {
-                            if(inField(sr)) {
-                                TextView t = new TextView(c);
-                                t.setText(sr.SSID + " " + sr.level);
-                                ll.addView(t);
-                            }
+                    for(ScanResult sr : rs) {
+                        if(inField(sr)) {
+                            TextView t = new TextView(c);
+                            t.setText(sr.SSID + " " + sr.level);
+                            ll.addView(t);
                         }
-
-                        if(enteredWifi(rs)) {
-                            genericNotification("You are in a Wifi field!");
-                        }
-
-                        // Updated previous ScanResults
-                        wifiFields = rs;
-
-                        rescan();
                     }
+
+                    if(enteredWifi(rs)) {
+                        genericNotification("You are in a Wifi field!");
+                    }
+
+                    // Updated previous ScanResults
+                    wifiFields = rs;
+
+                    rescan();
                 }
-            }, i);
+            }
+        }, i);
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
@@ -86,11 +89,13 @@ public class WiFeel extends Activity
     public void switchPress(View v) {
         if(((Switch)v).isChecked()) {
             service_on = true;
+            wl.acquire();  // Lock the Wifi radio.
             rescan();
         } else {
             // Clear the previous scan results.
             wifiFields = null;
             service_on = false;
+            wl.release();
         }
     }
 
@@ -104,10 +109,7 @@ public class WiFeel extends Activity
     }
 
     private void rescan() {
-        WifiManager wm;
-
         if(service_on) {
-            wm = (WifiManager)getSystemService(WIFI_SERVICE);
             wm.startScan();
         }
     }
