@@ -29,7 +29,6 @@ public class WiFeel extends Activity
     public enum Strength { WEAK, MEDIUM, STRONG };
 
     private static final int NOTIFICATION_ID = 1;
-    private static final int GENERIC_NOTIFICATION = 2;
     private static Strength threshold = Strength.WEAK;
     private static boolean service_on = false;
     private static List<ScanResult> wifiFields = null;
@@ -62,7 +61,7 @@ public class WiFeel extends Activity
                     }
 
                     if(enteredWifi(rs)) {
-                        genericNotification("You are in a Wifi field!");
+                        notification("You are in a Wifi field!");
                     }
 
                     // Updated previous ScanResults
@@ -99,13 +98,9 @@ public class WiFeel extends Activity
         }
     }
 
+    /* Callable from the Activity */
     public void refresh(View v) {
         rescan();
-
-        /* Eventually I'll need a WifiLock.
-         * https://developer.android.com/reference/android/net/wifi/WifiManager.WifiLock.html
-         * Use `acquire()` and `release()`.
-         */
     }
 
     private void rescan() {
@@ -147,6 +142,7 @@ public class WiFeel extends Activity
         }
     }
 
+    /* Tests a List of detected Fields to see if they match the threshold */
     private boolean alreadyInField(List<ScanResult> curr) {
         for(ScanResult sr : curr) {
             if(inField(sr)) {
@@ -156,8 +152,10 @@ public class WiFeel extends Activity
 
         return false;
     }
-    
+
+    /* Does a given Wifi Field meet the threshold criteria? */
     private boolean inField(ScanResult sr) {
+        // enum values can be (kind of) conveniently compared
         if(threshold.ordinal() <= strengthOf(sr).ordinal()) {
             return true;
         }
@@ -165,7 +163,7 @@ public class WiFeel extends Activity
         return false;
     }
 
-    /* Testing if user was in this field in the last scan */
+    /* Testing if user was in this Field in the last scan */
     private ScanResult previousCopy(ScanResult c) {
         for(ScanResult wf : wifiFields) {
             if(c.SSID == wf.SSID) {
@@ -191,7 +189,7 @@ public class WiFeel extends Activity
             return false;
         }
 
-        // TODO: Around here.
+        /* On subsequent scans */
         for(ScanResult c : curr) {
             p = previousCopy(c);
 
@@ -207,7 +205,7 @@ public class WiFeel extends Activity
         return false;
     }
 
-    private void genericNotification(String msg) {
+    private void notification(String msg) {
         NotificationCompat.Builder b = new NotificationCompat.Builder(this);
         b.setSmallIcon(R.drawable.ic_logo);
         b.setAutoCancel(true);
@@ -216,6 +214,6 @@ public class WiFeel extends Activity
 
         NotificationManager nm =
             (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-        nm.notify(GENERIC_NOTIFICATION, b.build());
+        nm.notify(NOTIFICATION_ID, b.build());
     }
 }
