@@ -28,4 +28,10 @@
                  android:text="@string/radio_strong"
                  android:onClick="strengthSelected"/>
   </RadioGroup>
+  <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/ssids"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="wrap_content">
+  </LinearLayout>
 </LinearLayout>

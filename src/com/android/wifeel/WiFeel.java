@@ -21,15 +21,16 @@ import android.widget.TextView;
 import android.widget.RadioButton;
 import java.util.List;
 
+
 // --- //
 
 public class WiFeel extends Activity
 {
     public enum Strength { WEAK, MEDIUM, STRONG };
-    
+
     private static final int NOTIFICATION_ID = 1;
     private static final int GENERIC_NOTIFICATION = 2;
-    private static Strength currStrength = Strength.WEAK;
+    private static Strength threshold = Strength.WEAK;
     private static boolean service_on = false;
     private static List<ScanResult> wifiFields = null;
 
@@ -41,24 +42,32 @@ public class WiFeel extends Activity
         i.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
         registerReceiver(new BroadcastReceiver() {
                 public void onReceive(Context c, Intent i) {
-                    // Code to execute when the event occurs!
-                    WifiManager wm = (WifiManager)c
-                        .getSystemService(Context.WIFI_SERVICE);
-                    List<ScanResult> rs = wm.getScanResults();  // <List>!
-                    LinearLayout ll = (LinearLayout)findViewById(R.id.masterLayout);
+                    if(service_on) {
+                        // Code to execute when the event occurs!
+                        WifiManager wm = (WifiManager)c
+                            .getSystemService(Context.WIFI_SERVICE);
+                        List<ScanResult> rs = wm.getScanResults();  // <List>!
+                        LinearLayout ll = (LinearLayout)findViewById(R.id.ssids);
 
-                    for(ScanResult sr : rs) {
-                        TextView t = new TextView(c);
-                        t.setText(sr.SSID + " " + sr.level);
-                        ll.addView(t);
+                        ll.removeAllViews();
+
+                        for(ScanResult sr : rs) {
+                            if(inField(sr)) {
+                                TextView t = new TextView(c);
+                                t.setText(sr.SSID + " " + sr.level);
+                                ll.addView(t);
+                            }
+                        }
+
+                        if(enteredWifi(rs)) {
+                            genericNotification("You are in a Wifi field!");
+                        }
+
+                        // Updated previous ScanResults
+                        wifiFields = rs;
+
+                        rescan();
                     }
-
-                    if(enteredWifi(rs)) {
-                        genericNotification("You are in a Wifi field!");
-                    }
-
-                    // Updated previous ScanResults
-                    wifiFields = rs;
                 }
             }, i);
 
@@ -79,7 +88,7 @@ public class WiFeel extends Activity
         if(((Switch)v).isChecked()) {
             // TODO: Make a scan here.
             service_on = true;
-            refresh(v);
+            rescan();
         } else {
             // Clear the previous scan results.
             wifiFields = null;
@@ -88,17 +97,21 @@ public class WiFeel extends Activity
     }
 
     public void refresh(View v) {
+        rescan();
+
+        /* Eventually I'll need a WifiLock.
+         * https://developer.android.com/reference/android/net/wifi/WifiManager.WifiLock.html
+         * Use `acquire()` and `release()`.
+         */
+    }
+
+    private void rescan() {
         WifiManager wm;
 
         if(service_on) {
             wm = (WifiManager)getSystemService(WIFI_SERVICE);
             wm.startScan();
         }
-
-        /* Eventually I'll need a WifiLock.
-         * https://developer.android.com/reference/android/net/wifi/WifiManager.WifiLock.html
-         * Use `acquire()` and `release()`.
-         */
     }
 
     public void strengthSelected(View v) {
@@ -108,17 +121,17 @@ public class WiFeel extends Activity
 
             switch(v.getId()) {
             case R.id.radio_strong:
-                currStrength = Strength.STRONG;
+                threshold = Strength.STRONG;
                 break;
             case R.id.radio_medium:
-                currStrength = Strength.MEDIUM;
+                threshold = Strength.MEDIUM;
                 break;
             default:
-                currStrength = Strength.WEAK;
+                threshold = Strength.WEAK;
                 break;
             }
 
-            refresh(v);
+            rescan();
         }
     }
 
@@ -136,7 +149,7 @@ public class WiFeel extends Activity
 
     private boolean alreadyInField(List<ScanResult> curr) {
         for(ScanResult sr : curr) {
-            if(strengthOf(sr) == currStrength) {
+            if(inField(sr)) {
                 return true;
             }
         }
@@ -145,7 +158,7 @@ public class WiFeel extends Activity
     }
     
     private boolean inField(ScanResult sr) {
-        if(currStrength == strengthOf(sr)) {
+        if(threshold.ordinal() <= strengthOf(sr).ordinal()) {
             return true;
         }
 
