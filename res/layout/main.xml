@@ -8,8 +8,7 @@
           android:layout_height="wrap_content"
           android:text="@string/button_refresh"
           android:onClick="refresh"/>
-  <RadioGroup xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="fill_parent"
+  <RadioGroup android:layout_width="fill_parent"
               android:layout_height="wrap_content"
               android:orientation="horizontal">
     <RadioButton android:id="@+id/radio_weak"
@@ -28,10 +27,9 @@
                  android:text="@string/radio_strong"
                  android:onClick="strengthSelected"/>
   </RadioGroup>
-  <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:id="@+id/ssids"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="wrap_content">
+  <LinearLayout android:id="@+id/ssids"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
   </LinearLayout>
 </LinearLayout>

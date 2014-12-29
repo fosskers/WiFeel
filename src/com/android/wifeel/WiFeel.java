@@ -21,7 +21,6 @@ import android.widget.TextView;
 import android.widget.RadioButton;
 import java.util.List;
 
-
 // --- //
 
 public class WiFeel extends Activity
@@ -86,7 +85,6 @@ public class WiFeel extends Activity
     /* Turn functionality on/off and notify user */
     public void switchPress(View v) {
         if(((Switch)v).isChecked()) {
-            // TODO: Make a scan here.
             service_on = true;
             rescan();
         } else {
