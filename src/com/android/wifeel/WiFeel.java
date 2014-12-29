@@ -103,6 +103,9 @@ public class WiFeel extends Activity
 
     public void strengthSelected(View v) {
         if(((RadioButton)v).isChecked()) {
+            // Reset the Fields cache.
+            wifiFields = null;
+
             switch(v.getId()) {
             case R.id.radio_strong:
                 currStrength = Strength.STRONG;
