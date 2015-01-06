@@ -24,8 +24,7 @@ import java.util.List;
 
 // --- //
 
-public class WiFeel extends Activity
-{
+public class WiFeel extends Activity {
     public enum Strength { WEAK, MEDIUM, STRONG };
 
     private static final int NOTIFICATION_ID = 1;
@@ -37,8 +36,7 @@ public class WiFeel extends Activity
 
     /* Called when the activity is first created. */
     @Override
-    public void onCreate(Bundle savedInstanceState)
-    {
+    public void onCreate(Bundle savedInstanceState) {
         wm = (WifiManager)getSystemService(WIFI_SERVICE);
         wl = wm.createWifiLock("WiFeelLock");
         IntentFilter i = new IntentFilter();
@@ -55,7 +53,9 @@ public class WiFeel extends Activity
                     for(ScanResult sr : rs) {
                         if(inField(sr)) {
                             TextView t = new TextView(c);
-                            t.setText(sr.SSID + " " + sr.level);
+                            t.setText(sr.SSID +
+                                      " " +
+                                      wm.calculateSignalLevel(sr.level,10));
                             ll.addView(t);
                         }
                     }
@@ -131,11 +131,11 @@ public class WiFeel extends Activity
     }
 
     private Strength strengthOf(ScanResult sr) {
-        int i = sr.level;
+        int i = wm.calculateSignalLevel(sr.level,10);
 
-        if(i < -90) {
+        if(i > 7) {
             return Strength.STRONG;
-        } else if(i < -50) {
+        } else if(i > 4) {
             return Strength.MEDIUM;
         } else {
             return Strength.WEAK;

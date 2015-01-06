@@ -8,7 +8,7 @@
           android:layout_height="wrap_content"
           android:text="@string/button_refresh"
           android:onClick="refresh"/>
-  <RadioGroup android:layout_width="fill_parent"
+  <RadioGroup android:layout_width="wrap_content"
               android:layout_height="wrap_content"
               android:orientation="horizontal">
     <RadioButton android:id="@+id/radio_weak"
